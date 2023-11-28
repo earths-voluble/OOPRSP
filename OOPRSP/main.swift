@@ -5,7 +5,7 @@
 //  Created by 이보한 on 2023/11/24.
 //
 
-import Foundation
+startGame()
 
 enum RockScissorsPaper: String, CaseIterable {
     case scissors = "1"
@@ -26,36 +26,35 @@ enum Result: String {
 }
 
 struct Player {
-    var secondGameTurn: Bool?
-    var firstHand: RockScissorsPaper?
-    var secondHand: MukJiPa?
+    var rockScissorsPaperHand: RockScissorsPaper?
+    var mukJiPaHand: MukJiPa?
     
-    mutating func chooseHand() {
+    mutating func choiceRockScissorsPaperHand() {
         if let input = readLine(),
            let select = RockScissorsPaper(rawValue: input) {
             let playerHand = select
-            self.firstHand = playerHand
+            self.rockScissorsPaperHand = playerHand
         }
     }
-    mutating func randomHand() {
-        self.firstHand = RockScissorsPaper.allCases.randomElement()
+    mutating func randomRockScissorsPaperHand() {
+        self.rockScissorsPaperHand = RockScissorsPaper.allCases.randomElement()
     }
     
     mutating func chooseSecondHand() {
         if let input = readLine(),
            let select = MukJiPa(rawValue: input) {
             let playerHand = select
-            self.secondHand = playerHand
+            self.mukJiPaHand = playerHand
         }
     }
     mutating func randomSecondHand() {
-        self.secondHand = MukJiPa.allCases.randomElement()
+        self.mukJiPaHand = MukJiPa.allCases.randomElement()
     }
 }
 
-struct Ruler {
-    func ruleFirstGame(playerHand: RockScissorsPaper?,
-                       computerHand: RockScissorsPaper?) -> Result {
+struct Refree {
+    func runFirstGame(playerHand: RockScissorsPaper?,
+                      computerHand: RockScissorsPaper?) -> Result {
         if playerHand == computerHand {
             return Result.draw
         } else if (playerHand == .rock && computerHand == .scissors) ||
@@ -67,69 +66,83 @@ struct Ruler {
         }
     }
     
-    func ruleSecondGame(turn: Result,
-                        user: Player,
-                        computer: Player
+    func noticeRockScissorsPaperResult(_ mukJiPaTurn: Result) {
+        switch mukJiPaTurn {
+        case .draw:
+            print("비겼습니다!")
+            startGame()
+        case .win:
+            print("이겼습니다!")
+        case .lose:
+            print("졌습니다!")
+        }
+    }
+    
+    func runSecondGame(rockScissorsPaperResult: Result,
+                       user: Player,
+                       computer: Player
     ) {
+        
         var shadowUser = user
         var shadowComputer = computer
-        print(turn)
+        print(rockScissorsPaperResult)
         
-        if turn == Result.win {
+        
+        if rockScissorsPaperResult == Result.win {
             print("[사용자 턴] 묵(1) 찌(2), 빠(3)! <종료 : 0> :")
-        } else { print("[컴퓨터 턴] 묵(1) 찌(2), 빠(3)! <종료 : 0> :") }
+        } else if rockScissorsPaperResult == Result.lose { print("[컴퓨터 턴] 묵(1) 찌(2), 빠(3)! <종료 : 0> :") }
+        else { 
+            print("에러")
+            exit(0)
+        }
         
         shadowUser.chooseSecondHand()
         shadowComputer.randomSecondHand()
         
-        if shadowUser.firstHand == shadowComputer.firstHand {
-            print("\(shadowUser.secondHand!), \(shadowComputer.secondHand!)")
-            print("승리")
-        } else if (shadowUser.secondHand == .muk && shadowComputer.secondHand == .ji) ||
-                    (shadowUser.secondHand == .ji && shadowComputer.secondHand == .pa) ||
-                    (shadowUser.secondHand == .pa && shadowComputer.secondHand == .muk) {
-            ruleSecondGame(turn: Result.win,
-                           user: shadowUser,
-                           computer: shadowComputer)
-        } else if (shadowUser.secondHand == .ji && shadowComputer.secondHand == .muk) ||
-                    (shadowUser.secondHand == .pa && shadowComputer.secondHand == .ji) ||
-                    (shadowUser.secondHand == .muk && shadowComputer.secondHand == .pa) {
-            ruleSecondGame(turn: Result.lose,
-                           user: shadowUser,
-                           computer: shadowComputer)
-        }        else {
-            print("\(shadowUser.secondHand!), \(shadowComputer.secondHand!)")
-            print("패배")
+        if shadowUser.mukJiPaHand == shadowComputer.mukJiPaHand {
+            print("\(shadowUser.mukJiPaHand!), \(shadowComputer.mukJiPaHand!)")
+            if rockScissorsPaperResult == Result.win {
+                print("사용자 승리")
+                return
+            } else {
+                print("컴퓨터 승리")
+                return
+            }
+        } else if (shadowUser.mukJiPaHand == .muk && shadowComputer.mukJiPaHand == .ji) ||
+                    (shadowUser.mukJiPaHand == .ji && shadowComputer.mukJiPaHand == .pa) ||
+                    (shadowUser.mukJiPaHand == .pa && shadowComputer.mukJiPaHand == .muk) {
+            print("\(shadowUser.mukJiPaHand!), \(shadowComputer.mukJiPaHand!)")
+            runSecondGame(rockScissorsPaperResult: Result.win,
+                          user: shadowUser,
+                          computer: shadowComputer)
+        } else if (shadowUser.mukJiPaHand == .ji && shadowComputer.mukJiPaHand == .muk) ||
+                    (shadowUser.mukJiPaHand == .pa && shadowComputer.mukJiPaHand == .ji) ||
+                    (shadowUser.mukJiPaHand == .muk && shadowComputer.mukJiPaHand == .pa) {
+            print("\(shadowUser.mukJiPaHand!), \(shadowComputer.mukJiPaHand!)")
+            runSecondGame(rockScissorsPaperResult: Result.lose,
+                          user: shadowUser,
+                          computer: shadowComputer)
         }
     }
 }
 
-func start() {
+func startGame() {
     print("가위(1), 바위(2), 보(3)! <종료 : 0> :")
-    let ruler = Ruler()
+    let refree = Refree()
     var user = Player()
     var computer = Player()
     
-    user.chooseHand()
-    computer.randomHand()
+    user.choiceRockScissorsPaperHand()
+    computer.randomRockScissorsPaperHand()
     
-    let secondGameTurn = ruler.ruleFirstGame(playerHand: user.firstHand,
-                                             computerHand: computer.firstHand)
+    var rockScissorsPaperResult = refree.runFirstGame(playerHand: user.rockScissorsPaperHand,
+                                              computerHand: computer.rockScissorsPaperHand)
     
-    if secondGameTurn == Result.draw {
-        print("비겼습니다!")
-        start()
-    } else if secondGameTurn == Result.win {
-        user.secondGameTurn = true
-        print("이겼습니다!")
-    } else {
-        user.secondGameTurn = false
-        print("졌습니다!")
-    }
+    refree.noticeRockScissorsPaperResult(rockScissorsPaperResult)
     
-    ruler.ruleSecondGame(turn: secondGameTurn,
+    refree.runSecondGame(rockScissorsPaperResult: rockScissorsPaperResult,
                          user: user,
                          computer: computer)
+    
 }
 
-start()
