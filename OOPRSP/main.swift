@@ -5,9 +5,10 @@
 //  Created by 이보한 on 2023/11/24.
 //
 
-startGame()
+start()
 
 enum RockScissorsPaper: String, CaseIterable {
+//    case exit = "0"
     case scissors = "1"
     case rock = "2"
     case paper = "3"
@@ -68,13 +69,12 @@ struct Refree {
     
     func noticeRockScissorsPaperResult(_ mukJiPaTurn: Result) {
         switch mukJiPaTurn {
-        case .draw:
-            print("비겼습니다!")
-            startGame()
         case .win:
             print("이겼습니다!")
         case .lose:
             print("졌습니다!")
+        case .draw:
+            print("에러")
         }
     }
     
@@ -82,7 +82,6 @@ struct Refree {
                        user: Player,
                        computer: Player
     ) {
-        
         var shadowUser = user
         var shadowComputer = computer
         print(rockScissorsPaperResult)
@@ -91,7 +90,7 @@ struct Refree {
         if rockScissorsPaperResult == Result.win {
             print("[사용자 턴] 묵(1) 찌(2), 빠(3)! <종료 : 0> :")
         } else if rockScissorsPaperResult == Result.lose { print("[컴퓨터 턴] 묵(1) 찌(2), 빠(3)! <종료 : 0> :") }
-        else { 
+        else {
             print("에러")
             exit(0)
         }
@@ -126,7 +125,26 @@ struct Refree {
     }
 }
 
-func startGame() {
+//func startGame() {
+//    print("가위(1), 바위(2), 보(3)! <종료 : 0> :")
+//    let refree = Refree()
+//    var user = Player()
+//    var computer = Player()
+//    
+//    user.choiceRockScissorsPaperHand()
+//    computer.randomRockScissorsPaperHand()
+//    
+//    let rockScissorsPaperResult = refree.runFirstGame(playerHand: user.rockScissorsPaperHand,
+//                                                      computerHand: computer.rockScissorsPaperHand)
+//    
+//    refree.noticeRockScissorsPaperResult(rockScissorsPaperResult)
+//    
+//    refree.runSecondGame(rockScissorsPaperResult: rockScissorsPaperResult,
+//                         user: user,
+//                         computer: computer)
+//}
+
+func start() {
     print("가위(1), 바위(2), 보(3)! <종료 : 0> :")
     let refree = Refree()
     var user = Player()
@@ -135,14 +153,23 @@ func startGame() {
     user.choiceRockScissorsPaperHand()
     computer.randomRockScissorsPaperHand()
     
-    var rockScissorsPaperResult = refree.runFirstGame(playerHand: user.rockScissorsPaperHand,
-                                              computerHand: computer.rockScissorsPaperHand)
+    let rockScissorsPaperResult = refree.runFirstGame(playerHand: user.rockScissorsPaperHand,
+                                                      computerHand: computer.rockScissorsPaperHand)
+    if rockScissorsPaperResult == .draw {
+        print("비겼습니다!")
+        start()
+        return
+    } else {
+        second(firstResult: rockScissorsPaperResult)
+    }
     
-    refree.noticeRockScissorsPaperResult(rockScissorsPaperResult)
-    
-    refree.runSecondGame(rockScissorsPaperResult: rockScissorsPaperResult,
-                         user: user,
-                         computer: computer)
-    
+    func second(firstResult : Result) {
+        
+        refree.noticeRockScissorsPaperResult(firstResult)
+        refree.runSecondGame(rockScissorsPaperResult: firstResult,
+                             user: user,
+                             computer: computer)
+    }
 }
+
 
