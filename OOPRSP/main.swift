@@ -7,14 +7,14 @@
 
 start()
 
-enum RockScissorsPaper: String, CaseIterable {
+enum RockScissorsPaperSelection: String, CaseIterable {
     case exit = "0"
     case scissors = "1"
     case rock = "2"
     case paper = "3"
 }
 
-enum MukJiPa: String, CaseIterable {
+enum MukJiPaSeleciton: String, CaseIterable {
     case exit = "0"
     case muk = "1"
     case ji = "2"
@@ -28,36 +28,36 @@ enum Result: String {
 }
 
 struct Player {
-    var rockScissorsPaperHand: RockScissorsPaper?
-    var mukJiPaHand: MukJiPa?
+    var rockScissorsPaperHand: RockScissorsPaperSelection?
+    var mukJiPaHand: MukJiPaSeleciton?
     
     mutating func choiceRockScissorsPaperHand() {
         if let input = readLine(),
-           let select = RockScissorsPaper(rawValue: input) {
+           let select = RockScissorsPaperSelection(rawValue: input) {
             let playerHand = select
             self.rockScissorsPaperHand = playerHand
         }
     }
     mutating func randomRockScissorsPaperHand() {
-        let exceptExitCase = RockScissorsPaper.allCases.filter{ $0.rawValue != "0" }
+        let exceptExitCase = RockScissorsPaperSelection.allCases.filter{ $0.rawValue != "0" }
         self.rockScissorsPaperHand = exceptExitCase.randomElement()
     }
     
-    mutating func chooseMukJiPaHand() {
+    mutating func choiceMukJiPaHand() {
         if let input = readLine(),
-           let select = MukJiPa(rawValue: input) {
+           let select = MukJiPaSeleciton(rawValue: input) {
             let playerHand = select
             self.mukJiPaHand = playerHand
         }
     }
     mutating func randomMukJiPaHand() {
-        self.mukJiPaHand = MukJiPa.allCases.randomElement()
+        self.mukJiPaHand = MukJiPaSeleciton.allCases.randomElement()
     }
 }
 
 struct Refree {
-    func runFirstGame(playerHand: RockScissorsPaper?,
-                      computerHand: RockScissorsPaper?) -> Result {
+    func runFirstGame(playerHand: RockScissorsPaperSelection?,
+                      computerHand: RockScissorsPaperSelection?) -> Result {
         print("\(playerHand!),\(computerHand!)")
         if playerHand == computerHand {
             return Result.draw
@@ -81,6 +81,33 @@ struct Refree {
         }
     }
     
+    func runSecondGameSecond(rockScissorsPaperResult: Result, playerHand: MukJiPaSeleciton?, computerHand: MukJiPaSeleciton?) {
+        if rockScissorsPaperResult == Result.win {
+            print("[사용자 턴] 묵(1) 찌(2), 빠(3)! <종료 : 0> :")
+        } else if rockScissorsPaperResult == Result.lose { print("[컴퓨터 턴] 묵(1) 찌(2), 빠(3)! <종료 : 0> :") }
+        else {
+            print("error: 01")
+            exit(0)
+        }
+        if playerHand == computerHand {
+//            print("\(playerHand!),\(computerHand!)")
+            if rockScissorsPaperResult == Result.win {
+                print("사용자 승리")
+                return
+            } else {
+                print("컴퓨터 승리")
+                return
+            }
+        } else if (playerHand == .muk && computerHand == .ji) ||
+                    (playerHand == .ji && computerHand == .pa) ||
+                    (playerHand == .pa && computerHand == .muk) {
+            print("\(playerHand!), \(computerHand!)")
+            
+            runSecondGameSecond(rockScissorsPaperResult: Result.win, playerHand: nil, computerHand: nil)
+            
+        }
+    }
+    
     func runSecondGame(rockScissorsPaperResult: Result,
                        user: Player,
                        computer: Player
@@ -98,7 +125,7 @@ struct Refree {
             exit(0)
         }
         
-        shadowUser.chooseMukJiPaHand()
+        shadowUser.choiceMukJiPaHand()
         shadowComputer.randomMukJiPaHand()
         
         if shadowUser.mukJiPaHand == shadowComputer.mukJiPaHand {
@@ -144,16 +171,22 @@ func start() {
     
     let rockScissorsPaperResult = refree.runFirstGame(playerHand: user.rockScissorsPaperHand,
                                                       computerHand: computer.rockScissorsPaperHand)
+    
+    
     if rockScissorsPaperResult == .draw {
         print("비겼습니다!")
         start()
         return
     } else {
+        user.choiceMukJiPaHand()
+        computer.randomMukJiPaHand()
+        refree.runSecondGameSecond(rockScissorsPaperResult: rockScissorsPaperResult,
+                                   playerHand: user.mukJiPaHand,
+                                   computerHand: computer.mukJiPaHand)
         second(firstResult: rockScissorsPaperResult)
     }
     
     func second(firstResult : Result) {
-        
         refree.noticeRockScissorsPaperResult(firstResult)
         refree.runSecondGame(rockScissorsPaperResult: firstResult,
                              user: user,
